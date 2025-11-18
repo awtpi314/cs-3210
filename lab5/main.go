@@ -129,8 +129,9 @@ func main() {
 
 	_, height, err := term.GetSize(stdinFd)
 	if err != nil {
-		fmt.Println("Error getting terminal size:", err)
-		return
+		fmt.Println("Error getting terminal height:", err)
+		fmt.Println("Defaulting to a height of 10.")
+		height = 10
 	}
 
 	fmt.Print("\033[2J\033[H\033[?25l")
@@ -147,15 +148,17 @@ func main() {
 		bookSearch := normalizeUserInput(search.String(), abbreviations)
 		bookSearch = regexp.MustCompile(`^[^0-9]*`).FindString(bookSearch)
 
-		matches := fuzzy.Find(bookSearch, booksList)
+		if bookSearch != "" {
+			matches := fuzzy.Find(bookSearch, booksList)
 
-		maxResults := max(height - 4, 0)
-		if len(matches) > maxResults {
-			matches = matches[:maxResults]
-		}
+			maxResults := max(height-4, 0)
+			if len(matches) > maxResults {
+				matches = matches[:maxResults]
+			}
 
-		for _, match := range matches {
-			fmt.Printf("  - %s\r\n", match)
+			for _, match := range matches {
+				fmt.Printf("  - %s\r\n", match)
+			}
 		}
 
 		os.Stdin.Read(buf)
