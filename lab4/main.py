@@ -8,6 +8,7 @@ and outputs the verse to a text file as well.
 """
 
 import csv
+import re
 
 
 def main():
@@ -22,48 +23,40 @@ def main():
     # Get input from the user and format it appropriately
     print("Please enter the reference of the verse you would like to retrieve")
     book = input("\tthe book: ")
-    book_normalized = abbreviations.get(book.strip().lower(), book)
-    if book_normalized == "psalm":
-        book_normalized = "psalms"
+    book_normalized = abbreviations.get(book.strip().lower(), book).lower()
     chapter = input("\tthe chapter: ")
     verse = input("\tthe verse: ")
 
     with open("lab4/bible.txt", newline="", encoding="utf-8") as bible_file:
         # Find the book
-        book_text = [
-            book_text.strip()
-            for book_text in bible_file.read().split("THE BOOK OF")
-            if book_text
-            and book_text.strip().lower().startswith(book_normalized)
-        ]
+        book_match = re.search(
+            f"^THE BOOK OF {book_normalized.upper()}.*$\n((?:(?!^THE BOOK OF).*\n?)*)",
+            bible_file.read(),
+            re.MULTILINE,
+        )
         # Make sure that we found a book
-        if len(book_text) < 1:
+        if not book_match:
             print(f'The Bible does not contain the book "{book}".')
             return 1
-        book_text = book_text[0]
+        book_text = book_match.group(1)
 
         # Find the chapter
-        chapter_text = [
-            chapter_text.strip()
-            for chapter_text in (
-                book_text.split("CHAPTER")
-                if book_normalized != "psalms"
-                else book_text.split("PSALM")
-            )
-            if chapter_text
-            and chapter_text.strip().startswith(f"{chapter}\n")
-        ]
+        chapter_match = re.search(
+            f"^(CHAPTER|PSALM) {chapter}.*$\n((?:(?!^(CHAPTER|PSALM) \\d+).*\n?)*)",
+            book_text,
+            re.MULTILINE,
+        )
         # Make sure that we found a chapter
-        if len(chapter_text) < 1:
+        if not chapter_match:
             print(f"The book of {book.capitalize()} does not have chapter {chapter}.")
             return 1
+        chapter_text = chapter_match.group(2)
 
         # Find the verse
         verse_text = [
             verse_text.strip()
-            for verse_text in (chapter_text[0].split("\n"))
-            if verse_text
-            and verse_text.strip().startswith(f"{verse} ")
+            for verse_text in (chapter_text.split("\n"))
+            if verse_text and verse_text.strip().startswith(f"{verse} ")
         ]
         # Make sure that we found a verse
         if len(verse_text) < 1:
@@ -74,7 +67,7 @@ def main():
             return 1
 
         print("The verse you requested is:")
-        to_print = f"{book.capitalize()} {chapter}:{verse_text[0]}".split(" ")
+        to_print = f"{book.upper()} {chapter}:{verse_text[0]}".split(" ")
         # Format the output to be 80 characters or less per line
         output_text = to_print[0]
         for word in to_print[1:]:
@@ -87,6 +80,7 @@ def main():
         print(output_text)
         with open("lab4/verses.txt", "a", encoding="utf-8") as output_file:
             output_file.write(" ".join(to_print))
+            output_file.write("\n")
 
 
 if __name__ == "__main__":
