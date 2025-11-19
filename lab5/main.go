@@ -164,7 +164,7 @@ func printWithWidth(text string, width int) {
 
 	for _, word := range words {
 		if currentLineLength+len(word)+1 > width {
-			fmt.Print("\n")
+			fmt.Print("\r\n")
 			currentLineLength = 0
 		}
 		if currentLineLength > 0 {
