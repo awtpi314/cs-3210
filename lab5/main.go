@@ -9,7 +9,8 @@ package main
 //
 // Additional Features:
 // This program uses a menu-style interface in the terminal, allowing real-time
-// input and dynamic updating of search results as the user types.
+// input and dynamic updating of search results as the user types. It uses fuzzy 
+// matching to handle partial or misspelled book names. 
 
 import (
 	"bufio"
@@ -202,7 +203,7 @@ func main() {
 	}()
 
 	// Initial screen setup
-	fmt.Print("\033[2J\033[H")
+	fmt.Print("\033[2J\033[H\r\n")
 	defer fmt.Print("\033[2J\033[H\033[?25h")
 
 	var search strings.Builder
@@ -210,6 +211,7 @@ func main() {
 	booksList := getBibleBooks(bible)
 	currentVerse := ""
 	previousSearch := ""
+	fileSavedMessage := false
 
 	// Draw initial static header
 	fmt.Printf("Enter the reference (ctrl + c to quit)\r\n> ")
@@ -219,13 +221,13 @@ func main() {
 
 		if currentSearch != previousSearch {
 			// Move cursor to input position and update search text
-			fmt.Print("\033[?25l\033[2;3H")
+			fmt.Print("\033[?25l\033[3;3H")
 			fmt.Print(currentSearch)
 			fmt.Print("\033[K") // Clear to end of line
 
 			// Clear from line 3 onwards for results
-			fmt.Print("\033[3;1H")
-			fmt.Print("\033[J") // Clear to end of screen
+			fmt.Print("\033[4;1H")
+			fmt.Print("\033[J\r\n") // Clear to end of screen
 
 			// Ensure we can find the book based on user input
 			upper := strings.ToUpper(currentSearch)
@@ -272,8 +274,14 @@ func main() {
 			previousSearch = currentSearch
 		}
 
+		if fileSavedMessage {
+			// Notify user that the verse was saved
+			fmt.Print("Your verse saved to verses.txt!\033[J")
+			fileSavedMessage = false
+		}
+
 		// Move cursor back to input position
-		fmt.Printf("\033[2;%dH\033[?25h", 3+len(search.String()))
+		fmt.Printf("\033[3;%dH\033[?25h", 3+len(search.String()))
 		os.Stdin.Read(buf)
 		inputChar := buf[0]
 
@@ -307,6 +315,11 @@ func main() {
 					fmt.Println("Error writing to verses file:", err)
 					return
 				}
+
+				fileSavedMessage = true
+				// Clear search input and reset state
+				search.Reset()
+				currentVerse = ""
 			}
 		}
 		if exitLoop {
