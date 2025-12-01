@@ -9,8 +9,8 @@ package main
 //
 // Additional Features:
 // This program uses a menu-style interface in the terminal, allowing real-time
-// input and dynamic updating of search results as the user types. It uses fuzzy 
-// matching to handle partial or misspelled book names. 
+// input and dynamic updating of search results as the user types. It uses fuzzy
+// matching to handle partial or misspelled book names.
 
 import (
 	"bufio"
@@ -259,10 +259,10 @@ func main() {
 					} else {
 						// Valid book, chapter, and verse
 						verseText := bible[matches[0].Str][chapterNum-1][verseNum-1]
-						currentVerse = fmt.Sprintf("%s %d:%d %s", 
-              matches[0].Str, chapterNum, verseNum, verseText)
+						currentVerse = fmt.Sprintf("%s %d:%d %s",
+							matches[0].Str, chapterNum, verseNum, verseText)
 
-						fmt.Printf("Pressing <Enter> will save %s %d:%d to the verses file.\r\n\r\n", 
+						fmt.Printf("Pressing <Enter> will save %s %d:%d to the verses file.\r\n\r\n",
 							matches[0].Str, chapterNum, verseNum)
 						printWithWidth(currentVerse, 80)
 					}
